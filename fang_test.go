@@ -7,7 +7,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/charmbracelet/fang"
+	"github.com/Nadim147c/fang"
 	"github.com/charmbracelet/x/exp/golden"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"

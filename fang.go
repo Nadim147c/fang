@@ -29,6 +29,7 @@ type settings struct {
 	manpages    bool
 	skipVersion bool
 	flagTypes   bool
+	shortPad    bool
 	version     string
 	commit      string
 	colorscheme ColorSchemeFunc
@@ -114,6 +115,13 @@ func WithFlagTypes() Option {
 	}
 }
 
+// WithFlagTypes adds padding for --longhand flags without shorthand
+func WithShorthandPadding() Option {
+	return func(s *settings) {
+		s.shortPad = true
+	}
+}
+
 // Execute applies fang to the command and executes it.
 func Execute(ctx context.Context, root *cobra.Command, options ...Option) error {
 	opts := settings{
@@ -137,7 +145,7 @@ func Execute(ctx context.Context, root *cobra.Command, options ...Option) error 
 
 	helpFunc := func(c *cobra.Command, _ []string) {
 		w := colorprofile.NewWriter(c.OutOrStdout(), os.Environ())
-		helpFn(c, w, makeStyles(mustColorscheme(opts.colorscheme)), opts.flagTypes)
+		helpFn(c, w, makeStyles(mustColorscheme(opts.colorscheme)), opts)
 	}
 
 	root.SilenceUsage = true

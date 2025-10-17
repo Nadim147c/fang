@@ -39,7 +39,7 @@ var width = sync.OnceValue(func() int {
 	return min(w, 120)
 })
 
-func helpFn(c *cobra.Command, w *colorprofile.Writer, styles Styles, flagTypes bool) {
+func helpFn(c *cobra.Command, w *colorprofile.Writer, styles Styles, opts settings) {
 	writeLongShort(w, styles, cmp.Or(c.Long, c.Short))
 	usage := styleUsage(c, styles.Codeblock.Program, true)
 	examples := styleExamples(c, styles)
@@ -73,7 +73,7 @@ func helpFn(c *cobra.Command, w *colorprofile.Writer, styles Styles, flagTypes b
 
 	groups, groupKeys := evalGroups(c)
 	cmds, cmdKeys := evalCmds(c, styles)
-	flags, flagKeys := evalFlags(c, styles, flagTypes)
+	flags, flagKeys := evalFlags(c, styles, opts)
 	space := calculateSpace(cmdKeys, flagKeys)
 
 	for _, groupID := range groupKeys {
@@ -363,9 +363,18 @@ func styleExample(c *cobra.Command, line string, indent bool, styles Codeblock) 
 	)
 }
 
-func evalFlags(c *cobra.Command, styles Styles, flagTypes bool) (map[string]string, []string) {
+func evalFlags(c *cobra.Command, styles Styles, opts settings) (map[string]string, []string) {
 	flags := map[string]string{}
 	keys := []string{}
+	pkeys := []string{}
+	shorthandIdent := ""
+	if opts.shortPad {
+		c.Flags().VisitAll(func(f *pflag.Flag) {
+			if f.Shorthand != "" {
+				shorthandIdent = "   "
+			}
+		})
+	}
 	c.Flags().VisitAll(func(f *pflag.Flag) {
 		if f.Hidden {
 			return
@@ -373,7 +382,7 @@ func evalFlags(c *cobra.Command, styles Styles, flagTypes bool) (map[string]stri
 
 		// rename types to have parity with cobra
 		var typeStr string
-		if flagTypes && f.Value.Type() != "bool" {
+		if opts.flagTypes && f.Value.Type() != "bool" {
 			typeStr = f.Value.Type()
 
 			re := regexp.MustCompile(`8|16|32|64`)
@@ -385,19 +394,20 @@ func evalFlags(c *cobra.Command, styles Styles, flagTypes bool) (map[string]stri
 			}
 		}
 
-		var parts []string
-		if f.Shorthand == "" {
-			parts = append(
-				parts,
-				styles.Program.Flag.Render("--"+f.Name)+typeStr,
-			)
+		var key string
+		if f.Shorthand != "" {
+			key = styles.Program.Flag.Render("-"+f.Shorthand+" --"+f.Name) + typeStr
+			if opts.shortPad {
+				pkeys = append(pkeys, key)
+			} else {
+				keys = append(keys, key)
+			}
 		} else {
-			parts = append(
-				parts,
-				styles.Program.Flag.Render("-"+f.Shorthand+" --"+f.Name)+typeStr,
-			)
+			key = shorthandIdent + styles.Program.Flag.Render("--"+f.Name) + typeStr
+			keys = append(keys, key)
 		}
-		key := lipgloss.JoinHorizontal(lipgloss.Left, parts...)
+
+		// add flags to keys slice if Shorthand padding is disabled
 
 		// Handle multiline flag descriptions by processing each line separately
 		// to preserve the transform while maintaining line breaks
@@ -421,9 +431,8 @@ func evalFlags(c *cobra.Command, styles Styles, flagTypes bool) (map[string]stri
 			help += styles.FlagDefault.Render(" (" + f.DefValue + ")")
 		}
 		flags[key] = help
-		keys = append(keys, key)
 	})
-	return flags, keys
+	return flags, append(pkeys, keys...)
 }
 
 // result is map[groupID]map[styled cmd name]styled cmd help, and the keys in

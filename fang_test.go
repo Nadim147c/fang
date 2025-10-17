@@ -143,6 +143,33 @@ func TestSetup(t *testing.T) {
 		exercise(t, mkroot)
 	})
 
+	t.Run("with short pad", func(t *testing.T) {
+		mkroot := func() *cobra.Command {
+			cmd := &cobra.Command{
+				Use:   "simple",
+				Short: "Short help",
+				Long:  "Long help",
+			}
+			cmd.Flags().String("string1", "default-value", "a string flag")
+			cmd.Flags().String("string2", "", "a string flag")
+			cmd.Flags().StringP("string3", "s", "", "a string flag")
+			cmd.Flags().Int("int1", 0, "an int flag")
+			cmd.Flags().Int("int2", 10, "an int flag")
+			cmd.Flags().IntP("int3", "i", 10, "an int flag")
+			cmd.Flags().Float64("float1", 0, "a float flag")
+			cmd.Flags().Float64("float2", 10, "a float flag")
+			cmd.Flags().Float64P("float3", "f", 10, "a float flag")
+			cmd.Flags().Bool("bool1", false, "a bool flag")
+			cmd.Flags().Bool("bool2", true, "a bool flag")
+			cmd.Flags().BoolP("bool3", "b", true, "a bool flag")
+			cmd.Flags().BoolP("hidden", "z", true, "a bool flag")
+			cmd.Flags().Bool("no-help", false, "")
+			_ = cmd.Flags().MarkHidden("hidden")
+			return cmd
+		}
+		exercise(t, mkroot, fang.WithShorthandPadding())
+	})
+
 	t.Run("with flag types", func(t *testing.T) {
 		mkroot := func() *cobra.Command {
 			cmd := &cobra.Command{

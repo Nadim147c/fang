@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/charmbracelet/fang"
+	"github.com/Nadim147c/fang"
 	"github.com/spf13/cobra"
 )
 
@@ -85,7 +85,8 @@ echo 'foo' |
 	cmd.Flags().Float64Var(&baz, "idk", 0.0, "I don't know")
 	cmd.Flags().BoolP("async", "a", false, "Run async")
 	cmd.Flags().BoolVarP(&eerr, "error", "e", false, "Makes the program exit with error")
-	cmd.Flags().String("format", "table", `Pretty-print the output using a Go template or one of the following special values
+	cmd.Flags().
+		String("format", "table", `Pretty-print the output using a Go template or one of the following special values
 'table':            Print output in table format with column headers (default)
 'table TEMPLATE':   Print output in table format using the given Go template
 'json':             Print in JSON format
@@ -138,7 +139,9 @@ example s another --thing
 		Short:   "Throws an error",
 		GroupID: "group1",
 		RunE: func(*cobra.Command, []string) error {
-			return errors.New("a super long error string that is meant to test the error handling in fang. It should be long enough to wrap around and test the error styling and formatting capabilities of fang. This is a test to see how well fang handles long error messages and whether it can display them properly without breaking the layout or causing any issues")
+			return errors.New(
+				"a super long error string that is meant to test the error handling in fang. It should be long enough to wrap around and test the error styling and formatting capabilities of fang. This is a test to see how well fang handles long error messages and whether it can display them properly without breaking the layout or causing any issues",
+			)
 		},
 	})
 

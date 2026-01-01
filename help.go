@@ -76,12 +76,20 @@ func helpFn(c *cobra.Command, w *colorprofile.Writer, styles Styles, opts settin
 	flags, flagKeys := evalFlags(c, styles, opts)
 	space := calculateSpace(cmdKeys, flagKeys)
 
+	width := 100
+	if f, ok := w.Forward.(*os.File); ok {
+		termWidth, _, err := term.GetSize(f.Fd())
+		if err == nil {
+			width = termWidth - 4
+		}
+	}
+
 	for _, groupID := range groupKeys {
 		group := cmds[groupID]
 		if len(group) == 0 {
 			continue
 		}
-		renderGroup(w, styles, space, groups[groupID], func(yield func(string, string) bool) {
+		renderGroup(w, styles, space, width, groups[groupID], func(yield func(string, string) bool) {
 			for _, k := range cmdKeys {
 				cmds, ok := group[k]
 				if !ok {
@@ -95,7 +103,7 @@ func helpFn(c *cobra.Command, w *colorprofile.Writer, styles Styles, opts settin
 	}
 
 	if len(flags) > 0 {
-		renderGroup(w, styles, space, "flags", func(yield func(string, string) bool) {
+		renderGroup(w, styles, space, width, "flags", func(yield func(string, string) bool) {
 			for _, k := range flagKeys {
 				if !yield(k, flags[k]) {
 					return
@@ -467,14 +475,14 @@ func evalGroups(c *cobra.Command) (map[string]string, []string) {
 	return groups, ids
 }
 
-func renderGroup(w io.Writer, styles Styles, space int, name string, items iter.Seq2[string, string]) {
+func renderGroup(w io.Writer, styles Styles, space, width int, name string, items iter.Seq2[string, string]) {
 	_, _ = fmt.Fprintln(w, styles.Title.Render(name))
 	for key, help := range items {
 		_, _ = fmt.Fprintln(w, lipgloss.JoinHorizontal(
 			lipgloss.Left,
 			lipgloss.NewStyle().PaddingLeft(longPad).Render(key),
 			strings.Repeat(" ", space-lipgloss.Width(key)),
-			help,
+			lipgloss.NewStyle().Width(width-space-longPad).Render(help),
 		))
 	}
 }

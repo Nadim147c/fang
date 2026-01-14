@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"runtime/debug"
 
+	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/lipgloss/v2"
 	mango "github.com/muesli/mango-cobra"
 	"github.com/muesli/roff"
 	"github.com/spf13/cobra"
@@ -108,14 +108,14 @@ func WithNotifySignal(signals ...os.Signal) Option {
 	}
 }
 
-// WithFlagTypes enables flags value types for help commands
+// WithFlagTypes enables flags value types for help commands.
 func WithFlagTypes() Option {
 	return func(s *settings) {
 		s.flagTypes = true
 	}
 }
 
-// WithFlagTypes adds padding for --longhand flags without shorthand
+// WithShorthandPadding adds padding for --longhand flags without shorthand.
 func WithShorthandPadding() Option {
 	return func(s *settings) {
 		s.shortPad = true

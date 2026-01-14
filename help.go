@@ -13,8 +13,8 @@ import (
 	"strings"
 	"sync"
 
+	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
@@ -466,7 +466,8 @@ func evalCmds(c *cobra.Command, styles Styles) (map[string](map[string]string), 
 
 func evalGroups(c *cobra.Command) (map[string]string, []string) {
 	// make sure the default group is the first
-	ids := []string{""}
+	ids := make([]string, 0, len(c.Groups())+1)
+	ids = append(ids, "")
 	groups := map[string]string{"": "commands"}
 	for _, g := range c.Groups() {
 		groups[g.ID] = g.Title
